@@ -38,7 +38,9 @@
 body {
   font-family: var(--font-yekan-bakh);
 }
-
+.ck-content{
+  min-height: 300px
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

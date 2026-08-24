@@ -19,6 +19,7 @@ export default function RHFTextField({ name,labelText, ...other }: Props) {
             {labelText}
           </InputLabel>
           <TextField
+            size="small"
             {...other}
             {...field}
             id={name}

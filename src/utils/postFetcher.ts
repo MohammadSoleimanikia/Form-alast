@@ -1,12 +1,10 @@
-import { apiClient } from "@/utils/apiClient";
+import { apiClient } from '@/utils/apiClient';
 
-
-export const LoginApi = async (
-  url:string,
-  {arg}:{arg:{mobile:string}}
-)=>{
-
-  const response = await apiClient.post(url,arg);
+export const postFetcher = async <TRequest, TResponse>(
+  url: string,
+  { arg }: { arg: TRequest },
+): Promise<TResponse> => {
+  const response = await apiClient.post<TResponse>(url, arg);
 
   return response.data;
 };

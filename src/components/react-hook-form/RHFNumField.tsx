@@ -4,7 +4,7 @@ import { InputLabel, TextField, type TextFieldProps } from '@mui/material';
 type Props = Omit<TextFieldProps, 'name' | 'type' | 'onChange'> & {
   name: string;
   maxLength?: number;
-  labelText: string;
+  labelText?: string;
   formatNumber?: boolean;
 };
 
@@ -24,7 +24,7 @@ const formatWithComma = (value: string | number) => {
   return new Intl.NumberFormat('en-US').format(number);
 };
 
-export default function RHFNumTextField({
+export default function RHFNumField({
   name,
   labelText = '',
   maxLength = 50,
@@ -50,9 +50,7 @@ export default function RHFNumTextField({
             {...field}
             type="tel"
             value={
-              formatNumber
-                ? formatWithComma(field.value ?? '')
-                : (field.value ?? '')
+              formatNumber ? formatWithComma(field.value ?? '') : (field.value ?? '')
             }
             slotProps={{
               htmlInput: {
@@ -65,8 +63,7 @@ export default function RHFNumTextField({
             }}
             onChange={(event) => {
               const value = toEnglishDigits(event.target.value).replace(/\D/g, '');
-
-              field.onChange(value);
+              field.onChange(value === '' ? undefined : value);
             }}
             error={!!error}
             helperText={error?.message}

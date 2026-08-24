@@ -3,6 +3,7 @@ import { Typography } from '@mui/material';
 import clsx from 'clsx';
 import { useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
+import ItemPreview from '../ItemPreview';
 
 type Props = {
   name: string;
@@ -64,8 +65,24 @@ export default function RHFUpload({ name, multiple = false, title }: Props) {
           handleFiles(event.target.files);
         };
 
+        const files = multiple
+          ? Array.isArray(field.value)
+            ? field.value
+            : []
+          : field.value
+            ? [field.value]
+            : [];
+
+        const handleRemove = (index: number) => {
+          if (multiple) {
+            const newFiles = files.filter((_, fileIndex) => fileIndex !== index);
+            field.onChange(newFiles);
+          } else {
+            field.onChange(null);
+          }
+        };
         return (
-          <div className="flex flex-col items-center gap-4 w-full">
+          <div className="flex w-full flex-col items-center gap-4">
             <input
               type="file"
               onChange={handleChange}
@@ -86,43 +103,63 @@ export default function RHFUpload({ name, multiple = false, title }: Props) {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               className={clsx(
-                'group flex w-full min-h-[200px] flex-col items-center rounded-lg bg-[#E9ECEF] p-2 hover:cursor-pointer',
+                'group flex min-h-[200px] w-full flex-col items-center rounded-lg bg-[#E9ECEF] p-2 hover:cursor-pointer',
               )}
             >
-              <Typography variant="body1">
-                آپلود فایل
-              </Typography>
+              <Typography variant="body1">آپلود فایل</Typography>
 
               <Typography variant="body2" className="mt-2">
                 لطفا فایل را کشیده و در باکس رها کنید
               </Typography>
 
-              <div className="mt-5 flex flex-col items-center">
-                <div className="group relative my-4">
-                  {/* border behind */}
+              <div
+                className={clsx('mt-5 flex h-[200px] w-full items-center justify-center')}
+              >
+                {files.length > 0 ? (
                   <div
                     className={clsx(
-                      'absolute inset-0 rounded-lg border-[1.5px] border-dotted',
-                      isDragging ? 'border-green-500' : 'border-red-300',
-                    )}
-                  />
-
-                  {/* main shape */}
-                  <div
-                    className={clsx(
-                      'relative z-10 flex size-32 flex-col items-center justify-center overflow-hidden rounded-lg bg-[#F3D9A5]',
-                      'transition-transform duration-300',
-                      'group-hover:-translate-y-2 group-hover:translate-x-2',
-                      isDragging && '-translate-y-2 translate-x-2',
+                      'h-full w-full gap-5 overflow-y-auto',
+                      multiple
+                        ? 'grid grid-cols-1 lg:grid-cols-2'
+                        : 'flex flex-col items-center',
                     )}
                   >
-                    <FiUpload className="size-5" />
-
-                    <Typography variant="caption" className="mt-2">
-                      {isDragging && 'رها کنید'}
-                    </Typography>
+                    {files.map((file, index) => (
+                      <ItemPreview
+                        key={`${file.name}-${file.size}-${file.lastModified}`}
+                        file={file}
+                        onRemove={() => handleRemove(index)}
+                      />
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  //  upload shape
+                  <div className="group relative my-4 max-w-32">
+                    {/* border behind */}
+                    <div
+                      className={clsx(
+                        'absolute inset-0 rounded-lg border-[1.5px] border-dotted',
+                        isDragging ? 'border-green-500' : 'border-red-300',
+                      )}
+                    />
+
+                    {/* main shape  */}
+                    <div
+                      className={clsx(
+                        'relative z-10 flex size-32 flex-col items-center justify-center overflow-hidden rounded-lg bg-[#F3D9A5]',
+                        'transition-transform duration-300',
+                        'group-hover:-translate-y-2 group-hover:translate-x-2',
+                        isDragging && '-translate-y-2 translate-x-2',
+                      )}
+                    >
+                      <FiUpload className="size-5" />
+
+                      <Typography variant="caption" className="mt-2">
+                        {isDragging && 'رها کنید'}
+                      </Typography>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

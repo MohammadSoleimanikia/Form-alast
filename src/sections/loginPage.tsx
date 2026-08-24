@@ -1,6 +1,6 @@
 import type { UserTypes } from '@/_types/_user';
 
-import { useNavigate } from "react-router";
+import { useNavigate } from 'react-router';
 import {
   LoginFormSchema,
   type LOGIN_MODE,
@@ -9,7 +9,7 @@ import {
 import Image from '@/components/Image';
 import LoginCountDown from '@/components/LoginCountDown';
 import Page from '@/components/Page';
-import RHFNumTextField from '@/components/react-hook-form/RHFNumTextField';
+import RHFNumField from '@/components/react-hook-form/RHFNumField';
 import FormProvider from '@/components/react-hook-form/FormProvider';
 import { tokenKey } from '@/config';
 import useLoginTimer from '@/hooks/useLoginTimer';
@@ -31,7 +31,7 @@ import type { LoginResponse, OtpResponse } from '@/_types/_auth';
 import { mutationFetcher } from '@/services/authServices';
 
 export default function LoginPage() {
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   const [showRetryBtn, setShowRetryBtn] = useState(false);
   const [countdownKey, setCountdownKey] = useState(0);
 
@@ -123,11 +123,10 @@ export default function LoginPage() {
     });
 
     if (!res.success || res.statusCode !== 200) {
-    throw new Error(res.message);
+      throw new Error(res.message);
     }
 
     saveMobile(mobile);
-    console.log(res)
     toast.success(`کد ورود شما :${res.code}`, { duration: 8000 });
 
     switchToOtpMode();
@@ -149,7 +148,7 @@ export default function LoginPage() {
     const decoded = jwtDecode<JwtPayload & { role: UserTypes.USER_ROLE }>(res.data.token);
 
     dispatch(createUser({ ...res.data.user, role: decoded.role }));
-    navigate("/")
+    navigate('/');
   };
 
   const onSubmit = async (data: LoginFormValuesProps) => {
@@ -181,7 +180,7 @@ export default function LoginPage() {
 
   return (
     <Page title="ورود" disableHeaderTitle>
-      <div className="flex size-full  items-center justify-center py-32">
+      <div className="flex size-full items-center justify-center py-32">
         <FormProvider
           methods={methods}
           onSubmit={handleSubmit(onSubmit)}
@@ -205,7 +204,7 @@ export default function LoginPage() {
 
           <div className="mt-8 flex w-full flex-col gap-2">
             {mode === 'LOGIN' ? (
-              <RHFNumTextField
+              <RHFNumField
                 key={'mobile'}
                 name="mobile"
                 maxLength={11}
@@ -223,7 +222,7 @@ export default function LoginPage() {
                 }}
               />
             ) : (
-              <RHFNumTextField
+              <RHFNumField
                 key={Math.random().toString()}
                 name="code"
                 maxLength={6}

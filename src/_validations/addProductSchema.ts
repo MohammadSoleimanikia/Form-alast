@@ -4,7 +4,7 @@ const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 const imageSchema = yup
   .mixed<File>()
-  .nullable()
+  .required('تصویر الزامی است')
   .test('file-type', 'فرمت تصویر باید jpg، jpeg، png یا webp باشد', (file) => {
     if (!file) return true;
 
@@ -16,14 +16,16 @@ const imagesSchema = yup
   .of(
     yup
       .mixed<File>()
+      .required('تصویر الزامی است')
       .test('file-type', 'فرمت تصویر باید jpg، jpeg، png یا webp باشد', (file) => {
         if (!file) return true;
 
         return allowedImageTypes.includes(file.type);
       }),
   )
+  .min(1, 'حداقل یک تصویر الزامی است')
+  .required('تصاویر محصول الزامی است')
   .default([]);
-
 
 export const AddProductSchema = yup.object({
   name: yup
@@ -43,11 +45,10 @@ export const AddProductSchema = yup.object({
 
   category: yup.number().required('دسته بندی محصول الزامی است'),
   subCategory_id: yup.number().required('انتخاب زیر گزوه محصول الزامی است'),
-  accCode: yup.string().required('کد حسابداری الزامی است'),
-  color_code: yup.string(),
-  color_name: yup.string(),
+  accCode: yup.number().required('کد حسابداری الزامی است'),
+
   // number or string.
-  opening_type: yup.string(),
+  opening_type: yup.number(),
   price: yup.number().required('قیمت نقدی الزامی است '),
 
   // state :????
@@ -65,18 +66,6 @@ export const AddProductSchema = yup.object({
     ),
 
   warehouseInventory: yup.number().required('موجودی انبار الزامی است'),
-  
-  image: imageSchema,
-
-  secondary_image: imageSchema,
-
-  images: imagesSchema,
-  shortDescription: yup
-    .string()
-    .required('توضیحات الزامی میباشد ')
-    .min(5, 'حداقل 5 کاراکتر الزامی میباشد'),
-  // description ck editor
-
   hasDiscount: yup.boolean(),
   discount: yup.number().when('hasDiscount', {
     is: true,
@@ -87,17 +76,31 @@ export const AddProductSchema = yup.object({
         .max(100, 'تخفیف نباید از صد بیشتر باشد'),
     otherwise: (schema) => schema.notRequired(),
   }),
-  discount_start_time: yup.date().when('hasDiscount', {
+  discount_start_time: yup.number().when('hasDiscount', {
     is: true,
     then: (schema) => schema.required('تاریخ شروع تخفیف الزامی میباشد'),
     otherwise: (schema) => schema.notRequired(),
   }),
-  discount_end_time: yup.date().when('hasDiscount', {
+  discount_end_time: yup.number().when('hasDiscount', {
     is: true,
     then: (schema) => schema.required('تاریخ پایان تخفیف الزامی میباشد'),
     otherwise: (schema) => schema.notRequired(),
   }),
 
+  image: imageSchema,
+
+  secondary_image: imageSchema,
+
+  images: imagesSchema,
+  shortDescription: yup
+    .string()
+    .required('توضیحات الزامی میباشد ')
+    .min(5, 'حداقل 5 کاراکتر الزامی میباشد'),
+  // description ck editor
+  description: yup.string().required('توضیحات محصول الزامی است'),
+  color_code: yup.string().required('انتخاب رنگ الزامی میباشد'),
+  color_name: yup.string().required('نام رنگ الزامی میباشد'),
+  tags: yup.array().of(yup.string().trim()).default([]),
   inventory: yup.number().required('وضعیت موجودی الزامی میباشد '),
   width: yup.number().required('عرض محصول الزامی است'),
   height: yup.number().required('ارتفاع محصول الزامی است'),
@@ -105,7 +108,6 @@ export const AddProductSchema = yup.object({
     .string()
     .required('جنس محصول الزامی است')
     .min(2, 'حداقل 2 کاراکتر نیاز است'),
-  // images[1]images[0]
 });
 
 export type AddProductType = yup.InferType<typeof AddProductSchema>;

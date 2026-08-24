@@ -23,7 +23,6 @@ export default function UserProvider({ children }: UserProviderProps) {
   useEffect(() => {
     if (data?.data) {
       dispatch(createUser({ ...data.data }));
-      console.log('useEffect set user data useState');
     }
   }, [data]);
 
