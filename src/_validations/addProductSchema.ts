@@ -3,28 +3,35 @@ import * as yup from 'yup';
 const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 const imageSchema = yup
-  .mixed<File>()
+  .mixed<File | string>()
   .required('تصویر الزامی است')
-  .test('file-type', 'فرمت تصویر باید jpg، jpeg، png یا webp باشد', (file) => {
-    if (!file) return true;
+  .test('file-type', 'فرمت تصویر باید jpg، jpeg، png یا webp باشد', (value) => {
+    if (!value) return false;
 
-    return allowedImageTypes.includes(file.type);
+    // pic from server received in string format
+    if (typeof value === 'string') return true;
+
+    // uploaded image
+    return allowedImageTypes.includes(value.type);
   });
 
-const imagesSchema = yup
+export const imagesSchema = yup
   .array()
   .of(
     yup
-      .mixed<File>()
-      .required('تصویر الزامی است')
-      .test('file-type', 'فرمت تصویر باید jpg، jpeg، png یا webp باشد', (file) => {
-        if (!file) return true;
+      .mixed<File | string>()
+      .test(
+        'file-type',
+        'فرمت تصویر باید jpg، jpeg، png یا webp باشد',
+        (value) => {
+          if (!value) return true;
 
-        return allowedImageTypes.includes(file.type);
-      }),
+          if (typeof value === 'string') return true;
+
+          return allowedImageTypes.includes(value.type);
+        },
+      ),
   )
-  .min(1, 'حداقل یک تصویر الزامی است')
-  .required('تصاویر محصول الزامی است')
   .default([]);
 
 export const AddProductSchema = yup.object({

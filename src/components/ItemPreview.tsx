@@ -1,19 +1,22 @@
 import { formatFileSize } from '@/utils/fileSizeUtil';
-import { IconButton } from '@mui/material';
 import { Avatar, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
-import { FiTrash2 } from 'react-icons/fi';
 type Props = {
-  file: File;
+  file: File | string;
   onRemove: () => void;
 };
 export default function ItemPreview({ file, onRemove }: Props) {
   const [preview, setPreview] = useState('');
   useEffect(() => {
+    if (typeof file == 'string') {
+      setPreview(file);
+      return;
+    }
     const url = URL.createObjectURL(file);
     setPreview(url);
     return () => {
+      if (typeof file == 'string') return;
       URL.revokeObjectURL(url);
     };
   }, [file]);
@@ -27,10 +30,10 @@ export default function ItemPreview({ file, onRemove }: Props) {
         />
         <div>
           <Typography variant="body2" className="line-clamp-1 max-w-[250px] font-bold">
-            {file.name}
+            {typeof file == 'string' ? 'فایل سرور' : file.name}
           </Typography>
           <Typography variant="caption" className="text-gray-500">
-            {formatFileSize(file.size)}
+            {typeof file == 'string' ? 'فایل موجود' :formatFileSize(file.size)}
           </Typography>
         </div>
       </div>

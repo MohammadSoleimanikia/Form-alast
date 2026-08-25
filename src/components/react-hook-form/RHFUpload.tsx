@@ -8,7 +8,7 @@ import ItemPreview from '../ItemPreview';
 type Props = {
   name: string;
   multiple?: boolean;
-  title: string;
+  title?: string;
 };
 
 export default function RHFUpload({ name, multiple = false, title }: Props) {
@@ -93,7 +93,7 @@ export default function RHFUpload({ name, multiple = false, title }: Props) {
             />
 
             {/* title */}
-            <Typography variant="body1">{title}</Typography>
+            {title && <Typography variant="body1">{title}</Typography>}
 
             {/* upload section */}
             <div

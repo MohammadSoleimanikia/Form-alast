@@ -1,15 +1,16 @@
 import Loadable from '@/components/Loadable';
 import { lazy } from 'react';
 import { useRoutes } from 'react-router-dom';
-import { ADD_PRODUCT, HOME, LOGIN } from './path';
+import { ADD_PRODUCT, EDIT_PRODUCT, HOME, LOGIN } from './path';
 import NotFound from '@/pages/NotFound';
 import { Navigate } from 'react-router-dom';
 import { tokenKey } from '@/config';
 import ProtectedRoute from './ProtectedRoute';
 import Home from '@/pages/Home';
-import AddProductPage from '@/pages/productForm/Add';
 
 const Login = Loadable(lazy(() => import('@/sections/loginPage')));
+const EditProduct = Loadable(lazy(() => import('@/pages/productForm/Edit')));
+const AddProduct = Loadable(lazy(() => import('@/pages/productForm/Add')));
 
 function Route() {
   const token = localStorage.getItem(tokenKey);
@@ -30,8 +31,13 @@ function Route() {
         },
         {
           path:ADD_PRODUCT,
-          element:<AddProductPage/>
+          element:<AddProduct/>
+        },
+        {
+          path:`${EDIT_PRODUCT}/:productId`,
+          element:<EditProduct/>
         }
+
       ],
     },
 
