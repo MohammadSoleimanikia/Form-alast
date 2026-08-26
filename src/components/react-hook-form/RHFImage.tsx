@@ -8,22 +8,23 @@ type Props = {
 };
 
 export default function RHFImage({ name }: Props) {
+  
   const { control } = useFormContext();
   return (
     <Controller
       name={name}
       control={control}
       render={({ field }) => {
-        const urlArray = Array.isArray(field.value) ? field.value : [];
-
+        const oldImages = Array.isArray(field.value) ? field.value : [];
+        
         const handleRemove = (index: number) => {
-          const newFiles = urlArray.filter((_, fileIndex) => fileIndex !== index);
+          const newFiles = oldImages.filter((_, fileIndex) => fileIndex !== index);
           field.onChange(newFiles);
         };
         return (
           <div
             className={clsx(
-              urlArray.length == 0 && 'hidden',
+              oldImages.length == 0 && 'hidden',
               'group flex min-h-[200px] w-full flex-col items-center rounded-lg bg-[#E9ECEF] p-2',
             )}
           >
@@ -38,10 +39,10 @@ export default function RHFImage({ name }: Props) {
                   'grid grid-cols-1 lg:grid-cols-2',
                 )}
               >
-                {urlArray.map((url: string, index) => (
+                {oldImages.map((imageItem, index) => (
                   <ItemPreview
-                    key={url}
-                    file={url}
+                    key={imageItem.id}
+                    file={imageItem.image}
                     onRemove={() => handleRemove(index)}
                   />
                 ))}

@@ -1,7 +1,6 @@
-import axios from 'axios';
 import toast from 'react-hot-toast';
 
-import { API_PATH_UPLOAD_IMAGE } from '@/routes/path';
+import {  API_PRODUCT } from '@/routes/path';
 import { apiClient } from './apiClient';
 
 class MyUploadAdapter {
@@ -22,7 +21,7 @@ class MyUploadAdapter {
 
         formData.append('image', file);
 
-        const response = await apiClient.post(API_PATH_UPLOAD_IMAGE, formData, {
+        const response = await apiClient.post(API_PRODUCT.UPLOAD_IMAGE, formData, {
           signal: this.controller.signal,
         });
 

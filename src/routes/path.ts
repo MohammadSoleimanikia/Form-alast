@@ -1,21 +1,22 @@
-export const LOGIN = '/login';
-export const HOME = '/';
-export const ADD_PRODUCT = '/product/add';
-export const EDIT_PRODUCT = '/product/edit';
 
-export const ROUTE_LOGIN = '@/sections/loginPage';
-export const ROUTE_HOME = '@/pages/Home';
+export const ROUTES = {
+  ADD_PRODUCT: '/product/add',
+  EDIT_PRODUCT: '/product/edit/:productId',
+  LOGIN: '/login',
+  HOME: '/',
+};
 
-export const API_PATH_LOGIN = '/login';
-export const API_PATH_OTP = '/verify-otp';
-export const API_PATH_GET_USER = '/getUser';
-export const API_PATH_ADD_PRODUCT = 'admin/product/store';
-export const API_PATH_UPDATE_PRODUCT = 'admin/product/update';
+export const API_AUTH = {
+  LOGIN: '/login',
+  OTP: '/verify-otp',
+  GET_USER: '/getUser',
+};
 
-
-export const API_PATH_UPLOAD_IMAGE = 'https://api.alastwin.ir/api/admin/upload-image';
-
-export const API_PATH_GET_PRODUCT_CATEGORY = 'admin/group/main';
-export const API_PATH_GET_PRODUCT = 'admin/product/show/panel';
-
-export const API_PATH_GET_PRODUCT_GROUP = 'admin/group/sub';
+export const API_PRODUCT = {
+  GET_PRODUCT: '/admin/product/show/panel',
+  GET_PRODUCT_CATEGORY: '/admin/group/main',
+  GET_PRODUCT_GROUP: '/admin/group/sub',
+  ADD_PRODUCT: '/admin/product/store',
+  UPDATE_PRODUCT: '/admin/product/update',
+  UPLOAD_IMAGE: '/admin/upload-image',
+};

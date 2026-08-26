@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { BsArrowLeft } from 'react-icons/bs';
 import useSWRMutation from 'swr/mutation';
-import { API_PATH_LOGIN, API_PATH_OTP } from '@/routes/path';
+import { API_AUTH } from '@/routes/path';
 import { BaseResponse } from '@/_types/_bsResponse';
 import type { LoginResponse, OtpResponse } from '@/_types/_auth';
 import { mutationFetcher } from '@/services/authServices';
@@ -56,7 +56,7 @@ export default function LoginPage() {
     {
       mobile: string;
     }
-  >(API_PATH_LOGIN, mutationFetcher);
+  >(API_AUTH.LOGIN, mutationFetcher);
 
   const { trigger: otpTrigger, isMutating: isOtpMutating } = useSWRMutation<
     BaseResponse<OtpResponse>,
@@ -66,7 +66,7 @@ export default function LoginPage() {
       mobile: string;
       code: string;
     }
-  >(API_PATH_OTP, mutationFetcher);
+  >(API_AUTH.OTP, mutationFetcher);
 
   const methods = useForm<LoginFormValuesProps>({
     resolver: yupResolver(LoginFormSchema) as any,

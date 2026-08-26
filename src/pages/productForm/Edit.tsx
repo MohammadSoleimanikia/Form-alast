@@ -8,17 +8,12 @@ import { useForm } from 'react-hook-form';
 import FormProvider from '@/components/react-hook-form/FormProvider';
 import RHFTextField from '@/components/react-hook-form/RHFTextField';
 import FormSectionWrapper from '@/components/react-hook-form/FormSectionWrapper';
-import { FaCheck, FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
+import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
 import { getFetcher } from '@/utils/getFetcher';
 import { useParams } from 'react-router';
-import {
-  API_PATH_GET_PRODUCT,
-  API_PATH_GET_PRODUCT_CATEGORY,
-  API_PATH_GET_PRODUCT_GROUP,
-  API_PATH_UPDATE_PRODUCT,
-} from '@/routes/path';
+import { API_PRODUCT } from '@/routes/path';
 import { BaseResponse } from '@/_types/_bsResponse';
 import RHFNumField from '@/components/react-hook-form/RHFNumField';
 import { IoIosPricetag } from 'react-icons/io';
@@ -26,21 +21,20 @@ import { AiFillPicture } from 'react-icons/ai';
 import RHFSwitch from '@/components/react-hook-form/RHFSwitch';
 import RHFSelect from '@/components/react-hook-form/RHFSelect';
 import RHFDatePicker from '@/components/react-hook-form/RHFDatePicker';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import RHFUpload from '@/components/react-hook-form/RHFUpload';
 import RHFColor from '@/components/react-hook-form/RHFColor';
 import RHFTagsInput from '@/components/react-hook-form/RHFTagsInput';
 import InfoCKEditor from '@/components/InfoCKEditor';
 import RHFCKEditor from '@/components/react-hook-form/RHFCKText';
-import { Button, CircularProgress, LinearProgress } from '@mui/material';
-import clsx from 'clsx';
 import useSWRMutation from 'swr/mutation';
 import { postFetcher } from '@/utils/postFetcher';
 import toast from 'react-hot-toast';
 import { ResProduct } from '@/_types/product/_product';
 import RHFImage from '@/components/react-hook-form/RHFImage';
-import FormSkeleton from '@/components/skeleton/FormSkeleton';
 import ProductFormSkeleton from '@/components/ProductFormSkeleton';
+import ProgressButton from '@/components/ProgressButton';
+import { useProgress } from '@/hooks/useProgress';
 
 const stockStatus = [
   { id: 1, name: 'موجود' },
@@ -58,14 +52,14 @@ type GroupResponse = {
 }[];
 type CategoryResponse = { id: number; name: string }[];
 export default function EditProductPage() {
-  const [progressPercentage, setProgressPercentage] = useState(0);
-  console.log(progressPercentage);
+  const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
+
   //form data post
   const {
     trigger,
     error,
     isMutating: isEditLoading,
-  } = useSWRMutation(API_PATH_UPDATE_PRODUCT, postFetcher);
+  } = useSWRMutation(API_PRODUCT.UPDATE_PRODUCT, postFetcher);
 
   // get category data
   const {
@@ -73,7 +67,7 @@ export default function EditProductPage() {
     error: categoryError,
     isLoading: isLoadingCategory,
   } = useSWR<BaseResponse<CategoryResponse>>(
-    API_PATH_GET_PRODUCT_CATEGORY,
+    API_PRODUCT.GET_PRODUCT_CATEGORY,
     getFetcher<CategoryResponse>,
   );
   // get group data
@@ -82,23 +76,26 @@ export default function EditProductPage() {
     error: groupError,
     isLoading: isLoadingGroup,
   } = useSWR<BaseResponse<GroupResponse>>(
-    API_PATH_GET_PRODUCT_GROUP,
+    API_PRODUCT.GET_PRODUCT_GROUP,
     getFetcher<GroupResponse>,
   );
 
-  // get form Data
+  // get product Data
   let { productId } = useParams();
   const {
     data: formData,
     error: formError,
     isLoading: isLoadingFormData,
   } = useSWR<BaseResponse<ResProduct>>(
-    `${API_PATH_GET_PRODUCT}?id=${productId}`,
+    `${API_PRODUCT.GET_PRODUCT}?id=${productId}`,
     getFetcher<ResProduct>,
   );
+
   const productData = formData?.data;
+
+  // RHF
   const methods = useForm<EditProductType>({
-    mode: 'onSubmit',
+    mode: 'onChange',
     resolver: yupResolver(EditProductSchema),
     defaultValues: {
       discount_start_time: Date.now(),
@@ -112,15 +109,19 @@ export default function EditProductPage() {
   const categoryId = methods.watch('category');
   const haveDiscount = methods.watch('hasDiscount');
   const startTime = methods.watch('discount_start_time');
+  const endTime = methods.watch('discount_end_time');
 
-  // const description = methods.watch('description'); //used to detect deleted pics
-
-  // set end time value
+  // set data of date to one hours later of start time
   useEffect(() => {
-    if (!startTime || !haveDiscount) return;
+    if (!startTime) return;
 
-    methods.setValue('discount_end_time', startTime + 60 * 60 * 1000);
-  }, [startTime, haveDiscount]);
+    if (startTime + 60 * 60 * 1000 > endTime!) {
+      methods.setValue('discount_end_time', startTime + 60 * 60 * 1000, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+  }, [startTime, methods.setValue]);
 
   // fill form with back data
   useEffect(() => {
@@ -131,7 +132,7 @@ export default function EditProductPage() {
       name: productData.name,
       en_name: productData.en_name,
 
-      accCode: Number(productData.accCode),
+      accCode: productData.accCode,
 
       brand: productData.brand,
 
@@ -153,7 +154,7 @@ export default function EditProductPage() {
       warehouseInventory: productData.warehouseInventory,
       minSalesCount: productData.minSalesCount,
 
-      hasDiscount: productData.discount > 0,
+      hasDiscount: Number(productData.discount) > 0,
       discount: productData.discount,
 
       discount_start_time: productData.discount_start_time
@@ -167,8 +168,8 @@ export default function EditProductPage() {
       image: productData.image,
       secondary_image: productData.secondary_image,
 
-      oldImages: productData.images.map((item) => item.image),
-
+      
+      oldImages: productData.images ?? [],
       tags: productData.tags,
 
       shortDescription: productData.shortDescription,
@@ -176,90 +177,109 @@ export default function EditProductPage() {
     });
   }, [productData, methods]);
 
-  // show group based on category
+  // filter group based on category
   const filteredGroup = groupData?.data?.filter((group) => group.parent === categoryId);
 
   const submitHandler = async (data: EditProductType) => {
-    console.log(data);
-    console.log(methods.formState.errors.root);
     const formData = new FormData();
 
-    formData.append('id', String(data.id));
-    // discount
-    formData.append('hasDiscount', String(data.hasDiscount));
+    for (const [key, value] of Object.entries(data)) {
+      if (key === 'hasDiscount') {
+        formData.append(key, String(value));
+        if (value) {
+          if (data.discount_start_time) {
+            formData.append(
+              'discount_start_time',
+              String(data.discount_start_time / 1000),
+            );
+          }
 
-    if (data.hasDiscount) {
-      if (data.discount_start_time) {
-        formData.append('discount_start_time', String(data.discount_start_time / 1000));
+          if (data.discount_end_time) {
+            formData.append('discount_end_time', String(data.discount_end_time / 1000));
+          }
+          formData.append('discount', String(data.discount));
+        }
+
+        continue;
       }
-      if (data.discount_end_time) {
-        formData.append('discount_end_time', String(data.discount_end_time / 1000));
+
+      if (key === 'images') {
+        data.images?.forEach((image, index) => {
+          if (image) {
+            formData.append(`images[${index}]`, image);
+          }
+        });
+        continue;
       }
-      formData.append('discount', String(data.discount));
+
+      if (key === 'oldImages') {
+        data.oldImages?.forEach((image, index) => {
+          if (image) {
+            formData.append(`oldImages[${index}]`, image.image);
+          }
+        });
+        continue;
+      }
+
+      if (key === 'tags') {
+        data.tags?.forEach((tag, index) => {
+          if (tag) {
+            formData.append(`tags[${index}]`, tag);
+          }
+        });
+        continue;
+      }
+
+      if (key === 'brand') {
+        if (value) {
+          formData.append('brand', String(value));
+        }
+        continue;
+      }
+
+      if (key === 'secondary_image') {
+        formData.append('secondary_image', data.secondary_image);
+        continue;
+      }
+      if (key === 'image') {
+        formData.append('image', data.image);
+        continue;
+      }
+
+      // because this values added in discount section
+      if (
+        key === 'discount_start_time' ||
+        key === 'discount_end_time' ||
+        key === 'discount'
+      ) {
+        continue;
+      }
+
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
     }
-
-    // images
-    data.images?.forEach((image, index) => {
-      if (image) {
-        formData.append(`images[${index}]`, image);
-      }
-    });
-    // old images
-    data.oldImages?.forEach((image, index) => {
-      if (image) {
-        formData.append(`oldImages[${index}]`, image);
-      }
-    });
-    // tags
-    data.tags?.forEach((tag, index) => {
-      if (tag) {
-        formData.append(`tags[${index}]`, tag);
-      }
-    });
-
-    // other fields
-    formData.append('warehouseInventory', String(data.warehouseInventory));
-    formData.append('minSalesCount', String(data.minSalesCount));
-    formData.append('material', data.material);
-    formData.append('height', String(data.height));
-    formData.append('width', String(data.width));
-    formData.append('inventory', String(data.inventory));
-    formData.append('description', data.description);
-    formData.append('shortDescription', data.shortDescription);
-    formData.append('secondary_image', data.secondary_image);
-    formData.append('image', data.image);
-    formData.append('price', String(data.price));
-    formData.append('opening_type', String(data.opening_type));
-    formData.append('color_name', data.color_name);
-    formData.append('color_code', data.color_code);
-    formData.append('accCode', String(data.accCode));
-    formData.append('category', String(data.category));
-    formData.append('subCategory_id', String(data.subCategory_id));
-
-    if (data.brand) {
-      formData.append('brand', data.brand);
-    }
-    formData.append('en_name', data.en_name);
-    formData.append('name', data.name);
 
     try {
       await trigger({ data: formData, onProgress: setProgressPercentage });
 
       toast.success('محصول با موفقیت ویرایش شد');
-      setProgressPercentage(0)
+      resetProgress();
     } catch (error) {
       toast.error('مشکلی پیش آمده است');
-      setProgressPercentage(0);
+      resetProgress();
     }
   };
+
   if (isLoadingFormData)
     return (
       <div className="mx-auto mt-6 flex size-full w-full flex-col px-6">
         <ProductFormSkeleton />
       </div>
     );
+
   return (
-    <Page title="ایجاد محصول آماده جدید" disableHeaderTitle>
+    <Page title="ویرایش محصول آماده" disableHeaderTitle>
       <div className="mx-auto mt-6 flex size-full w-full flex-col px-6">
         <FormProvider
           className="w-full"
@@ -362,7 +382,8 @@ export default function EditProductPage() {
                   <RHFDatePicker
                     name="discount_end_time"
                     labelText="تاریخ پایان*"
-                    minDate={
+
+                    minDateTime={
                       startTime
                         ? new Date(new Date(startTime).getTime() + 60 * 60 * 1000)
                         : new Date()
@@ -452,37 +473,12 @@ export default function EditProductPage() {
                 <RHFCKEditor name="description" labelText="توضیحات محصول" />
               </div>
               <div className="mr-auto mt-8 flex justify-end">
-            
-                {isEditLoading ? (
-                  <div className="relative mr-auto flex h-10 w-full min-w-[136px] items-center justify-center overflow-hidden rounded-md bg-[#eadcc5] sm:w-fit">
-                    {/* progress background */}
-                    <div
-                      className="absolute inset-y-0 right-0 bg-[#966e22] transition-all duration-300"
-                      style={{
-                        width: `${progressPercentage}%`,
-                      }}
-                    />
-
-                    {/* content */}
-                    <div className="relative z-10 flex items-center gap-2 text-white">
-                      <span className="text-sm font-medium">{progressPercentage}%</span>
-
-                      <CircularProgress size={18} thickness={5} color="inherit" />
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="contained"
-                    startIcon={<FaCheck />}
-                    size="medium"
-                    className={clsx(
-                      'mr-auto h-10 w-full min-w-[136px] !bg-[#966e22] sm:w-fit',
-                    )}
-                    type="submit"
-                  >
-                    ویرایش محصول
-                  </Button>
-                )}
+                <ProgressButton
+                  progressPercentage={progressPercentage}
+                  isLoading={isEditLoading}
+                >
+                  ویرایش محصول
+                </ProgressButton>
               </div>
             </FormSectionWrapper>
           </div>

@@ -1,7 +1,7 @@
 import { BaseResponse } from '@/_types/_bsResponse';
 import { UserTypes } from '@/_types/_user';
 import { tokenKey } from '@/config';
-import { API_PATH_GET_USER } from '@/routes/path';
+import { API_AUTH} from '@/routes/path';
 import { getFetcher } from '@/utils/getFetcher';
 import { useEffect } from 'react';
 import useSWR from 'swr';
@@ -15,7 +15,7 @@ export default function UserProvider({ children }: UserProviderProps) {
   const dispatch = useAppDispatch();
   const token = localStorage.getItem(tokenKey);
   const { data, isLoading } = useSWR<BaseResponse<UserTypes.UserProfile>>(
-    token ? API_PATH_GET_USER : null,
+    token ? API_AUTH.GET_USER : null,
     getFetcher<UserTypes.UserProfile>,
     {},
   );

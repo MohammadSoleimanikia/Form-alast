@@ -1,11 +1,11 @@
 import Loadable from '@/components/Loadable';
 import { lazy } from 'react';
 import { useRoutes } from 'react-router-dom';
-import { ADD_PRODUCT, EDIT_PRODUCT, HOME, LOGIN } from './path';
+import { ROUTES } from './path';
 import NotFound from '@/pages/NotFound';
 import { Navigate } from 'react-router-dom';
 import { tokenKey } from '@/config';
-import ProtectedRoute from './ProtectedRoute';
+import ProtectedRoute from '../guards/ProtectedRoute';
 import Home from '@/pages/Home';
 
 const Login = Loadable(lazy(() => import('@/sections/loginPage')));
@@ -17,8 +17,8 @@ function Route() {
 
   const element = useRoutes([
     {
-      path: LOGIN,
-      element: token ? <Navigate to="/" replace /> : <Login />,
+      path: ROUTES.LOGIN,
+      element: token ? <Navigate to={ROUTES.ADD_PRODUCT} replace /> : <Login />,
     },
 
     // protected routes
@@ -26,18 +26,17 @@ function Route() {
       element: <ProtectedRoute />,
       children: [
         {
-          path: HOME,
-          element: <Home/>,
+          path: ROUTES.HOME,
+          element: <Home />,
         },
         {
-          path:ADD_PRODUCT,
-          element:<AddProduct/>
+          path: ROUTES.ADD_PRODUCT,
+          element: <AddProduct />,
         },
         {
-          path:`${EDIT_PRODUCT}/:productId`,
-          element:<EditProduct/>
-        }
-
+          path: ROUTES.EDIT_PRODUCT,
+          element: <EditProduct />,
+        },
       ],
     },
 

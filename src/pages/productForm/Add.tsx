@@ -5,14 +5,12 @@ import { useForm } from 'react-hook-form';
 import FormProvider from '@/components/react-hook-form/FormProvider';
 import RHFTextField from '@/components/react-hook-form/RHFTextField';
 import FormSectionWrapper from '@/components/react-hook-form/FormSectionWrapper';
-import { FaCheck, FaDoorClosed, FaNewspaper, FaRegNewspaper } from 'react-icons/fa';
+import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
 import { getFetcher } from '@/utils/getFetcher';
 import {
-  API_PATH_ADD_PRODUCT,
-  API_PATH_GET_PRODUCT_CATEGORY,
-  API_PATH_GET_PRODUCT_GROUP,
+  API_PRODUCT,
 } from '@/routes/path';
 import { BaseResponse } from '@/_types/_bsResponse';
 import RHFNumField from '@/components/react-hook-form/RHFNumField';
@@ -27,15 +25,16 @@ import RHFColor from '@/components/react-hook-form/RHFColor';
 import RHFTagsInput from '@/components/react-hook-form/RHFTagsInput';
 import InfoCKEditor from '@/components/InfoCKEditor';
 import RHFCKEditor from '@/components/react-hook-form/RHFCKText';
-import { Button } from '@mui/material';
-import clsx from 'clsx';
 import useSWRMutation from 'swr/mutation';
 import { postFetcher } from '@/utils/postFetcher';
 import toast from 'react-hot-toast';
+import ProgressButton from '@/components/ProgressButton';
+import { useProgress } from '@/hooks/useProgress';
 const stockStatus = [
   { id: 1, name: 'موجود' },
   { id: 0, name: 'ناموجود' },
 ];
+
 const openingType = [
   { id: 1, name: 'راست بازشو' },
   { id: 2, name: 'چپ بازشو' },
@@ -46,23 +45,25 @@ type GroupResponse = {
   name: string;
   parent: number;
 }[];
+
 type CategoryResponse = { id: number; name: string }[];
+
 export default function AddProductPage() {
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [progressPercentage,setProgressPercentage] =useState(0)
-  
+  const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
+
   // get data for autoSelect
-  const { trigger, error, isMutating } = useSWRMutation(
-    API_PATH_ADD_PRODUCT,
-    postFetcher,
-  );
+  const {
+    trigger,
+    error,
+    isMutating: formIsSubmitting,
+  } = useSWRMutation(API_PRODUCT.ADD_PRODUCT, postFetcher);
 
   const {
     data: categoryData,
     error: categoryError,
     isLoading: isLoadingCategory,
   } = useSWR<BaseResponse<CategoryResponse>>(
-    API_PATH_GET_PRODUCT_CATEGORY,
+    API_PRODUCT.GET_PRODUCT_CATEGORY,
     getFetcher<CategoryResponse>,
   );
 
@@ -71,12 +72,12 @@ export default function AddProductPage() {
     error: groupError,
     isLoading: isLoadingGroup,
   } = useSWR<BaseResponse<GroupResponse>>(
-    API_PATH_GET_PRODUCT_GROUP,
+    API_PRODUCT.GET_PRODUCT_GROUP,
     getFetcher<GroupResponse>,
   );
 
   const methods = useForm<AddProductType>({
-    mode: 'onSubmit',
+    mode: 'onChange',
     resolver: yupResolver(AddProductSchema),
     defaultValues: {
       discount_start_time: Date.now(),
@@ -86,13 +87,15 @@ export default function AddProductPage() {
       color_code: '#D6A54A',
     },
   });
+
   // watch RHF
   const categoryId = methods.watch('category');
   const haveDiscount = methods.watch('hasDiscount');
   const startTime = methods.watch('discount_start_time');
 
-  const description = methods.watch('description');
+  // const description = methods.watch('description');
 
+  // set data of date to one hours later of start time
   useEffect(() => {
     if (!startTime) return;
 
@@ -104,77 +107,91 @@ export default function AddProductPage() {
 
   const filteredGroup = groupData?.data?.filter((group) => group.parent === categoryId);
 
-  // deleted images
-  // const testSubmit = () => {
-  //   const div = document.createElement('div');
-  //   div.innerHTML = description ?? '';
-
-  //   const currentImages = Array.from(div.querySelectorAll('img')).map((img) => img.src);
-
-  //   const deletedImages = uploadedImages.filter((url) => !currentImages.includes(url));
-
-  //   console.log('تصاویر آپلود شده:', uploadedImages);
-  //   console.log('تصاویر درون ادیتور:', currentImages);
-  //   console.log('تصاویر حذف شده:', deletedImages);
-  // };
-
   const submitHandler = async (data: AddProductType) => {
     const formData = new FormData();
 
-    // discount
-    formData.append('hasDiscount', String(data.hasDiscount));
+    for (const [key, value] of Object.entries(data)) {
+      if (key === 'hasDiscount') {
+        formData.append(key, String(value));
+        if (value) {
+          if (data.discount_start_time) {
+            formData.append(
+              'discount_start_time',
+              String(data.discount_start_time / 1000),
+            );
+          }
+          if (data.discount_end_time) {
+            formData.append('discount_end_time', String(data.discount_end_time / 1000));
+          }
+          formData.append('discount', String(data.discount));
+        }
 
-    if (data.hasDiscount) {
-      formData.append('discount_end_time', String(data.discount_end_time));
-      formData.append('discount_start_time', String(data.discount_start_time));
-      formData.append('discount', String(data.discount));
-    }
-
-    // images
-    data.images.forEach((image, index) => {
-      if (image) {
-        formData.append(`images[${index}]`, image);
+        continue;
       }
-    });
 
-    // tags
-    data.tags?.forEach((tag, index) => {
-      if (tag) {
-        formData.append(`tags[${index}]`, tag);
+      if (key === 'images') {
+        data.images?.forEach((image, index) => {
+          if (image) {
+            formData.append(`images[${index}]`, image);
+          }
+        });
+        continue;
       }
-    });
 
-    // other fields
-    formData.append('warehouseInventory', String(data.warehouseInventory));
-    formData.append('minSalesCount', String(data.minSalesCount));
-    formData.append('material', data.material);
-    formData.append('height', String(data.height));
-    formData.append('width', String(data.width));
-    formData.append('inventory', String(data.inventory));
-    formData.append('description', data.description);
-    formData.append('shortDescription', data.shortDescription);
-    formData.append('secondary_image', data.secondary_image);
-    formData.append('image', data.image);
-    formData.append('price', String(data.price));
-    formData.append('opening_type', String(data.opening_type));
-    formData.append('color_name', data.color_name);
-    formData.append('color_code', data.color_code);
-    formData.append('accCode', String(data.accCode));
-    formData.append('category', String(data.category));
-    formData.append('subCategory_id', String(data.subCategory_id));
+      if (key === 'tags') {
+        data.tags?.forEach((tag, index) => {
+          if (tag) {
+            formData.append(`tags[${index}]`, tag);
+          }
+        });
+        continue;
+      }
 
-    if (data.brand) {
-      formData.append('brand', data.brand);
+      if (key === 'brand') {
+        if (value) {
+          formData.append('brand', String(value));
+        }
+        continue;
+      }
+
+      if (key === 'secondary_image') {
+        formData.append('secondary_image', data.secondary_image);
+        continue;
+      }
+      if (key === 'image') {
+        formData.append('image', data.image);
+        continue;
+      }
+
+      // because this values added in discount section
+      if (
+        key === 'discount_start_time' ||
+        key === 'discount_end_time' ||
+        key === 'discount'
+      ) {
+        continue;
+      }
+
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
     }
-    formData.append('en_name', data.en_name);
-    formData.append('name', data.name);
 
     try {
-      await trigger({data:formData,onProgress:setProgressPercentage});
+      await trigger({ data: formData, onProgress: setProgressPercentage });
 
       toast.success('محصول با موفقیت ثبت شد');
+      methods.reset({
+        discount_start_time: Date.now(),
+        inventory: 1,
+        minSalesCount: 1,
+        opening_type: 1,
+        color_code: '#D6A54A',
+      });
+      resetProgress();
     } catch (error) {
       toast.error('مشکلی پیش آمده است');
+      resetProgress();
     }
   };
   return (
@@ -280,7 +297,7 @@ export default function AddProductPage() {
                   <RHFDatePicker
                     name="discount_end_time"
                     labelText="تاریخ پایان*"
-                    minDate={
+                    minDateTime={
                       startTime
                         ? new Date(new Date(startTime).getTime() + 60 * 60 * 1000)
                         : new Date()
@@ -363,32 +380,15 @@ export default function AddProductPage() {
                 />
 
                 <InfoCKEditor />
-                <RHFCKEditor
-                  name="description"
-                  labelText="توضیحات محصول"
-                  onImagesChange={setUploadedImages}
-                />
+                <RHFCKEditor name="description" labelText="توضیحات محصول" />
               </div>
               <div className="mr-auto mt-8 flex justify-end">
-                <Button
-                
-                  variant="contained"
-                  startIcon={<FaCheck />}
-                  size="medium"
-                  className={clsx(
-                    'bg-[w-full disabled:bg-primary-light sm:w-fit] disabled:bg-primary-light',
-                    'mr-auto h-10 w-full min-w-[136px] !bg-[#966e22] sm:w-fit',
-                  )}
-                  type="submit"
+                <ProgressButton
+                  progressPercentage={progressPercentage}
+                  isLoading={formIsSubmitting}
                 >
-                  ثبت محصول
-                </Button>
-                
-                {/* deleted images */}
-                {/* <Button variant="outlined" className='mr-3' onClick={testSubmit}>
-                  تصاویر حذف شده
-                </Button> */}
-                
+                  ایجاد محصول
+                </ProgressButton>
               </div>
             </FormSectionWrapper>
           </div>

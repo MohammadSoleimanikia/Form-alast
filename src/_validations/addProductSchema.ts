@@ -52,7 +52,7 @@ export const AddProductSchema = yup.object({
 
   category: yup.number().required('دسته بندی محصول الزامی است'),
   subCategory_id: yup.number().required('انتخاب زیر گزوه محصول الزامی است'),
-  accCode: yup.number().required('کد حسابداری الزامی است'),
+  accCode: yup.string().required('کد حسابداری الزامی است'),
 
   // number or string.
   opening_type: yup.number(),
