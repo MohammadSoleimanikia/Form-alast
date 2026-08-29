@@ -9,9 +9,7 @@ import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
 import { getFetcher } from '@/utils/getFetcher';
-import {
-  API_PRODUCT,
-} from '@/routes/path';
+import { API_PRODUCT } from '@/routes/path';
 import { BaseResponse } from '@/_types/_bsResponse';
 import RHFNumField from '@/components/react-hook-form/RHFNumField';
 import { IoIosPricetag } from 'react-icons/io';
@@ -30,46 +28,30 @@ import { postFetcher } from '@/utils/postFetcher';
 import toast from 'react-hot-toast';
 import ProgressButton from '@/components/ProgressButton';
 import { useProgress } from '@/hooks/useProgress';
-const stockStatus = [
-  { id: 1, name: 'موجود' },
-  { id: 0, name: 'ناموجود' },
-];
-
-const openingType = [
-  { id: 1, name: 'راست بازشو' },
-  { id: 2, name: 'چپ بازشو' },
-];
-
-type GroupResponse = {
-  id: number;
-  name: string;
-  parent: number;
-}[];
-
-type CategoryResponse = { id: number; name: string }[];
+import { CategoryResponse, GroupResponse } from '@/_types/product/_product';
+import { STOCK_STATUS_DATA } from '@/sections/product/STOCK_STATUS_DATA';
+import { OPENING_TYPE_DATA } from '@/sections/product/OPENING_TYPE';
 
 export default function AddProductPage() {
   const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
 
-  // get data for autoSelect
+  //add product
   const {
     trigger,
-    error,
     isMutating: formIsSubmitting,
   } = useSWRMutation(API_PRODUCT.ADD_PRODUCT, postFetcher);
 
+  // get category data
   const {
     data: categoryData,
-    error: categoryError,
     isLoading: isLoadingCategory,
   } = useSWR<BaseResponse<CategoryResponse>>(
     API_PRODUCT.GET_PRODUCT_CATEGORY,
     getFetcher<CategoryResponse>,
   );
-
+  // get group data
   const {
     data: groupData,
-    error: groupError,
     isLoading: isLoadingGroup,
   } = useSWR<BaseResponse<GroupResponse>>(
     API_PRODUCT.GET_PRODUCT_GROUP,
@@ -87,29 +69,31 @@ export default function AddProductPage() {
       color_code: '#D6A54A',
     },
   });
+  const { watch, setValue, reset,handleSubmit } = methods;
 
   // watch RHF
-  const categoryId = methods.watch('category');
-  const haveDiscount = methods.watch('hasDiscount');
-  const startTime = methods.watch('discount_start_time');
+  const categoryId = watch('category');
+  const haveDiscount = watch('hasDiscount');
+  const startTime = watch('discount_start_time');
 
-  // const description = methods.watch('description');
 
-  // set data of date to one hours later of start time
+  // set data of dateTime to one hours later of start time
   useEffect(() => {
     if (!startTime) return;
 
-    methods.setValue('discount_end_time', startTime + 60 * 60 * 1000, {
+    setValue('discount_end_time', startTime + 60 * 60 * 1000, {
       shouldValidate: true,
       shouldDirty: true,
     });
-  }, [startTime, methods.setValue]);
+  }, [startTime, setValue]);
 
+  // filter Group based on parent id
   const filteredGroup = groupData?.data?.filter((group) => group.parent === categoryId);
+
 
   const submitHandler = async (data: AddProductType) => {
     const formData = new FormData();
-
+    // append data to FormData 
     for (const [key, value] of Object.entries(data)) {
       if (key === 'hasDiscount') {
         formData.append(key, String(value));
@@ -181,7 +165,7 @@ export default function AddProductPage() {
       await trigger({ data: formData, onProgress: setProgressPercentage });
 
       toast.success('محصول با موفقیت ثبت شد');
-      methods.reset({
+      reset({
         discount_start_time: Date.now(),
         inventory: 1,
         minSalesCount: 1,
@@ -200,7 +184,7 @@ export default function AddProductPage() {
         <FormProvider
           className="w-full"
           methods={methods}
-          onSubmit={methods.handleSubmit(submitHandler)}
+          onSubmit={handleSubmit(submitHandler)}
         >
           <div className="flex flex-col gap-5">
             {/* main data ----------------------------------------------------------------*/}
@@ -269,7 +253,11 @@ export default function AddProductPage() {
                 formatNumber
               />
 
-              <RHFSelect labelText="وضعیت*" name="inventory" options={stockStatus} />
+              <RHFSelect
+                labelText="وضعیت*"
+                name="inventory"
+                options={STOCK_STATUS_DATA}
+              />
 
               <RHFNumField labelText="حداقل تعداد سفارش*" name="minSalesCount" />
 
@@ -358,7 +346,7 @@ export default function AddProductPage() {
               <RHFSelect
                 labelText="جهت بازشوی محصول*"
                 name="opening_type"
-                options={openingType}
+                options={OPENING_TYPE_DATA}
               />
               <RHFTagsInput labelText="برچسب ها *" name="tags" />
             </FormSectionWrapper>

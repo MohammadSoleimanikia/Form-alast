@@ -1,4 +1,4 @@
-import { AddProductSchema, imagesSchema } from "./addProductSchema";
+import { AddProductSchema } from "./addProductSchema";
 import * as yup from'yup'
 
 const imageItemSchema = yup.object({
@@ -9,4 +9,5 @@ export const EditProductSchema = AddProductSchema.shape({
   oldImages:yup.array().of(imageItemSchema).default([]),
   id:yup.number(),
 });
+
 export type EditProductType = yup.InferType<typeof EditProductSchema>

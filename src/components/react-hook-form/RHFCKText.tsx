@@ -12,7 +12,7 @@ type Props = {
 };
 
 export default function RHFCKEditor({ name, labelText, onImagesChange }: Props) {
-  const { control } = useFormContext();
+  const { control} = useFormContext();
 
   // uploaded image
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -20,7 +20,7 @@ export default function RHFCKEditor({ name, labelText, onImagesChange }: Props) 
   const handleUploadSuccess = useCallback((url: string) => {
     setUploadedImages((prev) => (prev.includes(url) ? prev : [...prev, url]));
   }, []);
-
+ 
   // send to parent data
   useEffect(() => {
     onImagesChange?.(uploadedImages);

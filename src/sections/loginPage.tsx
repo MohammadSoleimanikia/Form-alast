@@ -1,6 +1,6 @@
 import type { UserTypes } from '@/_types/_user';
 
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import {
   LoginFormSchema,
   type LOGIN_MODE,
@@ -31,6 +31,7 @@ import type { LoginResponse, OtpResponse } from '@/_types/_auth';
 import { mutationFetcher } from '@/services/authServices';
 
 export default function LoginPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [showRetryBtn, setShowRetryBtn] = useState(false);
   const [countdownKey, setCountdownKey] = useState(0);
@@ -148,7 +149,9 @@ export default function LoginPage() {
     const decoded = jwtDecode<JwtPayload & { role: UserTypes.USER_ROLE }>(res.data.token);
 
     dispatch(createUser({ ...res.data.user, role: decoded.role }));
-    navigate('/');
+    navigate(location.state?.from || '/', {
+      replace: true,
+    });
   };
 
   const onSubmit = async (data: LoginFormValuesProps) => {

@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useRef, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import ItemPreview from '../ItemPreview';
+import toast from 'react-hot-toast';
 
 type Props = {
   name: string;
@@ -80,6 +81,7 @@ export default function RHFUpload({ name, multiple = false, title }: Props) {
           } else {
             field.onChange(null);
           }
+          toast.success('تصویر با موفقیت حذف شد')
         };
         return (
           <div className="flex w-full flex-col items-center gap-4">

@@ -2,6 +2,13 @@ type Image = {
   id: number;
   image: string;
 };
+export type GroupResponse = {
+  id: number;
+  name: string;
+  parent: number;
+}[];
+export type CategoryResponse = { id: number; name: string }[];
+
 export type ResProduct = {
   accCode: string;
   brand: string;

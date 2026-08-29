@@ -19,4 +19,5 @@ export const API_PRODUCT = {
   ADD_PRODUCT: '/admin/product/store',
   UPDATE_PRODUCT: '/admin/product/update',
   UPLOAD_IMAGE: '/admin/upload-image',
+  DESTROY_IMAGE:'/admin/product-images/destroy'
 };

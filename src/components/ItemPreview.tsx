@@ -1,12 +1,13 @@
 import { formatFileSize } from '@/utils/fileSizeUtil';
-import { Avatar, Typography } from '@mui/material';
+import { Avatar, CircularProgress, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 type Props = {
   file: File | string;
   onRemove: () => void;
+  isRemoving?: boolean;
 };
-export default function ItemPreview({ file, onRemove }: Props) {
+export default function ItemPreview({ file, onRemove, isRemoving = false }: Props) {
   const [preview, setPreview] = useState('');
   useEffect(() => {
     if (typeof file == 'string') {
@@ -33,7 +34,8 @@ export default function ItemPreview({ file, onRemove }: Props) {
             {typeof file == 'string' ? 'فایل سرور' : file.name}
           </Typography>
           <Typography variant="caption" className="text-gray-500">
-            {typeof file == 'string' ? 'فایل موجود' :formatFileSize(file.size)}
+            {typeof file == 'string' ? 'فایل موجود' : formatFileSize(file.size)}
+            {}
           </Typography>
         </div>
       </div>
@@ -46,7 +48,11 @@ export default function ItemPreview({ file, onRemove }: Props) {
         }}
         className="flex size-9 items-center justify-center rounded-full hover:bg-gray-100"
       >
-        <FaTrash className="size-[18px] text-red-500" />
+        {isRemoving ? (
+          <CircularProgress size={18} thickness={5} color="inherit" />
+        ) : (
+          <FaTrash className="size-[18px] text-red-500" />
+        )}
       </div>
     </div>
   );

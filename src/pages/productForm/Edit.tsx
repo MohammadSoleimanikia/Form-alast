@@ -12,7 +12,7 @@ import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
 import { getFetcher } from '@/utils/getFetcher';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { API_PRODUCT } from '@/routes/path';
 import { BaseResponse } from '@/_types/_bsResponse';
 import RHFNumField from '@/components/react-hook-form/RHFNumField';
@@ -30,31 +30,20 @@ import RHFCKEditor from '@/components/react-hook-form/RHFCKText';
 import useSWRMutation from 'swr/mutation';
 import { postFetcher } from '@/utils/postFetcher';
 import toast from 'react-hot-toast';
-import { ResProduct } from '@/_types/product/_product';
+import { CategoryResponse, GroupResponse, ResProduct } from '@/_types/product/_product';
 import RHFImage from '@/components/react-hook-form/RHFImage';
 import ProductFormSkeleton from '@/components/ProductFormSkeleton';
 import ProgressButton from '@/components/ProgressButton';
 import { useProgress } from '@/hooks/useProgress';
+import { STOCK_STATUS_DATA } from '@/sections/product/STOCK_STATUS_DATA';
+import { OPENING_TYPE_DATA } from '@/sections/product/OPENING_TYPE';
+import NotFound from '../NotFound';
 
-const stockStatus = [
-  { id: 1, name: 'موجود' },
-  { id: 0, name: 'ناموجود' },
-];
-const openingType = [
-  { id: 1, name: 'راست بازشو' },
-  { id: 2, name: 'چپ بازشو' },
-];
-
-type GroupResponse = {
-  id: number;
-  name: string;
-  parent: number;
-}[];
-type CategoryResponse = { id: number; name: string }[];
 export default function EditProductPage() {
   const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
 
-  //form data post
+  const navigate= useNavigate()
+  //update product
   const {
     trigger,
     error,
@@ -90,6 +79,10 @@ export default function EditProductPage() {
     `${API_PRODUCT.GET_PRODUCT}?id=${productId}`,
     getFetcher<ResProduct>,
   );
+
+  const isProductNotFound = formError?.status === 404 || formError?.status === 402;
+
+  
 
   const productData = formData?.data;
 
@@ -168,7 +161,6 @@ export default function EditProductPage() {
       image: productData.image,
       secondary_image: productData.secondary_image,
 
-      
       oldImages: productData.images ?? [],
       tags: productData.tags,
 
@@ -215,6 +207,7 @@ export default function EditProductPage() {
       if (key === 'oldImages') {
         data.oldImages?.forEach((image, index) => {
           if (image) {
+            // send only image url {id:number,image:string}
             formData.append(`oldImages[${index}]`, image.image);
           }
         });
@@ -265,11 +258,16 @@ export default function EditProductPage() {
 
       toast.success('محصول با موفقیت ویرایش شد');
       resetProgress();
+      navigate("/")
+      
     } catch (error) {
-      toast.error('مشکلی پیش آمده است');
       resetProgress();
     }
   };
+
+  if (isProductNotFound) {
+    return <NotFound />;
+  }
 
   if (isLoadingFormData)
     return (
@@ -354,7 +352,11 @@ export default function EditProductPage() {
                 formatNumber
               />
 
-              <RHFSelect labelText="وضعیت*" name="inventory" options={stockStatus} />
+              <RHFSelect
+                labelText="وضعیت*"
+                name="inventory"
+                options={STOCK_STATUS_DATA}
+              />
 
               <RHFNumField labelText="حداقل تعداد سفارش*" name="minSalesCount" />
 
@@ -448,7 +450,7 @@ export default function EditProductPage() {
               <RHFSelect
                 labelText="جهت بازشوی محصول*"
                 name="opening_type"
-                options={openingType}
+                options={OPENING_TYPE_DATA}
               />
               <RHFTagsInput labelText="برچسب ها *" name="tags" />
             </FormSectionWrapper>

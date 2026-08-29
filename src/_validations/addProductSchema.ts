@@ -14,7 +14,7 @@ const imageSchema = yup
     // uploaded image
     return allowedImageTypes.includes(value.type);
   });
-
+ 
 export const imagesSchema = yup
   .array()
   .of(
