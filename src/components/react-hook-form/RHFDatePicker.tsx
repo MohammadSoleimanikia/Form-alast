@@ -28,7 +28,7 @@ export default function RHFDatePicker({ name, labelText, ...other }: Props) {
           <LocalizationProvider dateAdapter={AdapterDateFnsJalali}>
             <DateTimePicker
               {...other}
-              value={field.value ? new Date(field.value) : new Date()}
+              value={field.value ? new Date(field.value/1000)  : new Date()}
               onChange={(value) => field.onChange(value?.getTime() ?? null)}
               ampm={false}
               slotProps={{
