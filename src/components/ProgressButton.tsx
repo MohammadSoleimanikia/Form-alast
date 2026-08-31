@@ -1,4 +1,4 @@
-import { Button, CircularProgress } from '@mui/material';
+import { Button, ButtonProps, CircularProgress } from '@mui/material';
 import clsx from 'clsx/lite';
 import { ReactNode } from 'react';
 import { FaCheck } from 'react-icons/fa';
@@ -7,8 +7,8 @@ type Props = {
   isLoading?: boolean;
   progressPercentage: number;
   children:ReactNode;
-};
-export default function ProgressButton({ isLoading = false, progressPercentage,children }: Props) {
+} & ButtonProps;
+export default function ProgressButton({ isLoading = false, progressPercentage,children,...buttonProps }: Props) {
   if (isLoading) {
     return (
       <div className="relative mr-auto flex h-10 w-full min-w-[136px] items-center justify-center overflow-hidden rounded-md bg-[#eadcc5] sm:w-fit">
@@ -36,6 +36,7 @@ export default function ProgressButton({ isLoading = false, progressPercentage,c
       size="medium"
       className={clsx('mr-auto h-10 w-full min-w-[136px] !bg-[#966e22] sm:w-fit')}
       type="submit"
+      {...buttonProps}
     >
       {children}
     </Button>

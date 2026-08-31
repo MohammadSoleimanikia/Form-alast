@@ -89,8 +89,8 @@ export default function EditProductForm() {
     getFetcher<ResProduct>,
   );
 
-  const isProductNotFound = formError?.status === 404 || formError?.status === 402;
-
+  const isProductNotFound = formError?.status === 402;
+  const failedToLoadData=!!formError;
   const productData = formData?.data;
 
   // RHF
@@ -420,6 +420,7 @@ export default function EditProductForm() {
             </div>
             <div className="mr-auto mt-8 flex justify-end">
               <ProgressButton
+                disabled={failedToLoadData}
                 progressPercentage={progressPercentage}
                 isLoading={isEditLoading}
               >
