@@ -10,7 +10,7 @@ import FormSectionWrapper from '@/components/react-hook-form/FormSectionWrapper'
 import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
-import { createSWRGetFetcher, createSWRPostFetcher } from '@/utils/fetcher';
+import { getFetcher, postFetcher } from '@/utils/fetcher';
 import { useNavigate, useParams } from 'react-router';
 import { API_PRODUCT } from '@/services';
 import { BaseResponse } from '@/_types/_bsResponse';
@@ -28,7 +28,12 @@ import InfoCKEditor from '@/components/InfoCKEditor';
 import RHFCKEditor from '@/components/react-hook-form/RHFCKText';
 import useSWRMutation from 'swr/mutation';
 import toast from 'react-hot-toast';
-import { CategoryResponse, GroupResponse, ResProduct } from '@/_types/product/_product';
+import {
+  CategoryResponse,
+  GroupResponse,
+  ProductResponse,
+  ResProduct,
+} from '@/_types/product/_product';
 import RHFImage from '@/components/react-hook-form/RHFImage';
 import ProductFormSkeleton from '@/components/ProductFormSkeleton';
 import ProgressButton from '@/components/ProgressButton';
@@ -36,15 +41,12 @@ import { useProgress } from '@/hooks/useProgress';
 import { STOCK_STATUS_DATA } from '@/utils/constants';
 import { OPENING_TYPE_DATA } from '@/utils/constants';
 import NotFound from '@/pages/NotFound';
-import { API_BASE_ADMIN_URL } from '@/utils/config';
 import { formDataGenerator } from '@/utils/formDataGenerator';
+import ErrorPage from '@/pages/Error';
 
 export default function EditProductForm() {
   const [initialLoadData, setInitialLoadData] = useState(true);
   const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
-
-  const customGetFetcher = createSWRGetFetcher(API_BASE_ADMIN_URL);
-  const customPostFethcer = createSWRPostFetcher(API_BASE_ADMIN_URL);
 
   const navigate = useNavigate();
 
@@ -53,7 +55,10 @@ export default function EditProductForm() {
     trigger,
     error,
     isMutating: isEditLoading,
-  } = useSWRMutation(API_PRODUCT.UPDATE_PRODUCT, customPostFethcer);
+  } = useSWRMutation(
+    API_PRODUCT.UPDATE_PRODUCT,
+    postFetcher<any, BaseResponse<ProductResponse>>,
+  );
 
   const {
     data: categoryData,
@@ -61,7 +66,7 @@ export default function EditProductForm() {
     isLoading: isLoadingCategory,
   } = useSWR<BaseResponse<CategoryResponse>>(
     API_PRODUCT.GET_PRODUCT_CATEGORY,
-    customGetFetcher<CategoryResponse>,
+    getFetcher<CategoryResponse>,
   );
   // get group data
   const {
@@ -70,7 +75,7 @@ export default function EditProductForm() {
     isLoading: isLoadingGroup,
   } = useSWR<BaseResponse<GroupResponse>>(
     API_PRODUCT.GET_PRODUCT_GROUP,
-    customGetFetcher<GroupResponse>,
+    getFetcher<GroupResponse>,
   );
 
   // get product Data
@@ -81,7 +86,7 @@ export default function EditProductForm() {
     isLoading: isLoadingFormData,
   } = useSWR<BaseResponse<ResProduct>>(
     `${API_PRODUCT.GET_PRODUCT}?id=${productId}`,
-    customGetFetcher<ResProduct>,
+    getFetcher<ResProduct>,
   );
 
   const isProductNotFound = formError?.status === 404 || formError?.status === 402;
@@ -107,7 +112,6 @@ export default function EditProductForm() {
   const endTime = methods.watch('discount_end_time');
   const oldImages = methods.watch('oldImages');
 
-  console.log('old imagess', oldImages);
 
   //   remove default value if category changes
   useEffect(() => {
@@ -121,13 +125,15 @@ export default function EditProductForm() {
   useEffect(() => {
     if (!startTime) return;
 
-    if (startTime + 60 * 60 > endTime!) {
-      methods.setValue('discount_end_time', startTime + 60 * 60, {
+    const oneHourLater = startTime + 60 * 60;
+
+    if (!endTime || endTime < oneHourLater) {
+      methods.setValue('discount_end_time', oneHourLater, {
         shouldValidate: true,
         shouldDirty: true,
       });
     }
-  }, [startTime, endTime, methods]);
+  }, [startTime, methods]);
 
   // fill form with back data
   useEffect(() => {
@@ -195,13 +201,17 @@ export default function EditProductForm() {
     // formData console
 
     try {
-      await trigger({ data: formData, onProgress: setProgressPercentage });
+      const response = await trigger({
+        data: formData,
+        onProgress: setProgressPercentage,
+      });
 
       toast.success('محصول با موفقیت ویرایش شد');
       resetProgress();
       navigate('/');
     } catch (error) {
       resetProgress();
+      return error;
     }
   };
 
@@ -249,6 +259,7 @@ export default function EditProductForm() {
             {/* category */}
             <RHFSelectAutoComplete
               isDataLoading={isLoadingCategory}
+              disabled={ !!categoryError || !!groupError }
               loading={isLoadingCategory}
               loadingText="در حال بارگیری "
               labelText="انتخاب دسته بندی*"
@@ -261,7 +272,7 @@ export default function EditProductForm() {
               isDataLoading={isLoadingGroup}
               noOptionsText="اطلاعات زیرگروه موجود نمیباشد"
               labelText="انتخاب گروه*"
-              disabled={!categoryId}
+              disabled={!categoryId || !!groupError || !!categoryError}
               name="subCategory_id"
               options={filteredGroup ?? null}
             />
@@ -335,7 +346,7 @@ export default function EditProductForm() {
             description="تصاویر محصول را با دقت و زوایا مختلف آپلود کنید"
             icon={<AiFillPicture className="size-6" />}
           >
-            <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
               <RHFUpload name="image" title="بارگزاری تصویر اصلی" multiple={false} />
 
               <RHFUpload

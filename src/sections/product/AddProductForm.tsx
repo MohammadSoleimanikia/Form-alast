@@ -7,7 +7,12 @@ import FormSectionWrapper from '@/components/react-hook-form/FormSectionWrapper'
 import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
-import { createSWRGetFetcher, createSWRPostFetcher } from '@/utils/fetcher';
+import {
+  createSWRGetFetcher,
+  createSWRPostFetcher,
+  getFetcher,
+  postFetcher,
+} from '@/utils/fetcher';
 import { API_PRODUCT } from '@/services';
 import { BaseResponse } from '@/_types/_bsResponse';
 import RHFNumField from '@/components/react-hook-form/RHFNumField';
@@ -29,29 +34,36 @@ import { useProgress } from '@/hooks/useProgress';
 import { CategoryResponse, GroupResponse } from '@/_types/product/_product';
 import { STOCK_STATUS_DATA } from '@/utils/constants';
 import { OPENING_TYPE_DATA } from '@/utils/constants';
-import { API_BASE_ADMIN_URL } from '@/utils/config';
+
 import { formDataGenerator } from '@/utils/formDataGenerator';
 
 export default function AddProductForm() {
   const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
 
-  const customGetFetcher = createSWRGetFetcher(API_BASE_ADMIN_URL);
-  const customPostFethcer = createSWRPostFetcher(API_BASE_ADMIN_URL);
-
   //add product
   const { trigger, isMutating: formIsSubmitting } = useSWRMutation(
     API_PRODUCT.ADD_PRODUCT,
-    customPostFethcer,
+    postFetcher,
   );
 
   // get category data
-  const { data: categoryData, isLoading: isLoadingCategory } = useSWR<
-    BaseResponse<CategoryResponse>
-  >(API_PRODUCT.GET_PRODUCT_CATEGORY, customGetFetcher<CategoryResponse>);
+  const {
+    data: categoryData,
+    error: categoryError,
+    isLoading: isLoadingCategory,
+  } = useSWR<BaseResponse<CategoryResponse>>(
+    API_PRODUCT.GET_PRODUCT_CATEGORY,
+    getFetcher<CategoryResponse>,
+  );
   // get group data
-  const { data: groupData, isLoading: isLoadingGroup } = useSWR<
-    BaseResponse<GroupResponse>
-  >(API_PRODUCT.GET_PRODUCT_GROUP, customGetFetcher<GroupResponse>);
+  const {
+    data: groupData,
+    error: groupError,
+    isLoading: isLoadingGroup,
+  } = useSWR<BaseResponse<GroupResponse>>(
+    API_PRODUCT.GET_PRODUCT_GROUP,
+    getFetcher<GroupResponse>,
+  );
 
   const methods = useForm<AddProductType>({
     mode: 'onChange',
@@ -136,6 +148,7 @@ export default function AddProductForm() {
             {/* category */}
             <RHFSelectAutoComplete
               isDataLoading={isLoadingCategory}
+              disabled={!!categoryError || !!groupError}
               loading={isLoadingCategory}
               loadingText="در حال بارگیری "
               labelText="انتخاب دسته بندی*"
@@ -148,7 +161,7 @@ export default function AddProductForm() {
               isDataLoading={isLoadingGroup}
               noOptionsText="اطلاعات زیرگروه موجود نمیباشد"
               labelText="انتخاب گروه*"
-              disabled={!categoryId}
+              disabled={!categoryId || !!groupError || !!categoryError}
               name="subCategory_id"
               options={filteredGroup ?? []}
             />
@@ -221,7 +234,7 @@ export default function AddProductForm() {
             description="تصاویر محصول را با دقت و زوایا مختلف آپلود کنید"
             icon={<AiFillPicture className="size-6" />}
           >
-            <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div className="mb-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
               <RHFUpload name="image" title="بارگزاری تصویر اصلی" multiple={false} />
 
               <RHFUpload

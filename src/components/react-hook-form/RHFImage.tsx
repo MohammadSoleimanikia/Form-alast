@@ -4,10 +4,9 @@ import { Controller, useFormContext } from 'react-hook-form';
 import ItemPreview from '../ItemPreview';
 import useSWRMutation from 'swr/mutation';
 import { API_PRODUCT } from '@/services';
-import { createSWRPostFetcher, postFetcher } from '@/utils/fetcher';
+import {  postFetcher } from '@/utils/fetcher';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
-import { API_BASE_ADMIN_URL } from '@/utils/config';
 
 type Props = {
   name: string;
@@ -21,10 +20,9 @@ type ImageItem = {
 export default function RHFImage({ name }: Props) {
   const [removingId, setRemovingId] = useState<string | null>(null);
 
-  const customPostFethcer = createSWRPostFetcher(API_BASE_ADMIN_URL);
   const { trigger, isMutating: isRemoving } = useSWRMutation(
     API_PRODUCT.DESTROY_IMAGE,
-    customPostFethcer,
+    postFetcher,
   );
 
   const { control } = useFormContext();

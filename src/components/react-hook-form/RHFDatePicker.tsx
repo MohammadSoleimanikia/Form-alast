@@ -29,11 +29,26 @@ export default function RHFDatePicker({ name, labelText, ...other }: Props) {
             <DateTimePicker
               {...other}
               value={field.value ? new Date(field.value * 1000) : null}
-              onChange={(value) =>
-                field.onChange(
-                  value ? Math.floor(value.getTime() / 1000) : null
-                )
-              }
+              onChange={(value) => {
+                if (!value) {
+                  field.onChange(null);
+                  return;
+                }
+
+                const now = new Date();
+
+                // اگر کاربر ساعت را انتخاب نکرده باشد،
+                // DatePicker ساعت را 00:00 قرار می‌دهد.
+                if (
+                  value.getHours() === 0 &&
+                  value.getMinutes() === 0 &&
+                  value.getSeconds() === 0
+                ) {
+                  value.setHours(now.getHours(), now.getMinutes(), now.getSeconds(), 0);
+                }
+
+                field.onChange(Math.floor(value.getTime() / 1000));
+              }}
               ampm={false}
               slotProps={{
                 textField: {
@@ -54,11 +69,7 @@ export default function RHFDatePicker({ name, labelText, ...other }: Props) {
             />
           </LocalizationProvider>
 
-          {error && (
-            <FormHelperText error>
-              {error.message}
-            </FormHelperText>
-          )}
+          {error && <FormHelperText error>{error.message}</FormHelperText>}
         </div>
       )}
     />

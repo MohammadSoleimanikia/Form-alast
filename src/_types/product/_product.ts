@@ -2,6 +2,11 @@ type Image = {
   id: number;
   image: string;
 };
+export type ProductResponse = {
+  type: null|any;
+  id: number;
+  en_name: string;
+};
 export type GroupResponse = {
   id: number;
   name: string;
