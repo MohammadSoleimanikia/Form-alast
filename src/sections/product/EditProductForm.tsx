@@ -113,77 +113,91 @@ export default function EditProductForm() {
   const endTime = methods.watch('discount_end_time');
   const oldImages = methods.watch('oldImages');
 
+  // 
+  const previousCategoryId = useRef<number | null | undefined>(undefined);
   //   remove default value if category changes
   useEffect(() => {
-    if (!initialLoadData) {
-      methods.setValue('subCategory_id', null);
+    if (categoryId === undefined) return;
+
+    if (previousCategoryId.current === undefined) {
+      previousCategoryId.current = categoryId;
+      return;
+    }
+    // if category changes subcategory became null
+    if (previousCategoryId.current !== categoryId) {
+      methods.setValue('subCategory_id', null, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+
+      previousCategoryId.current = categoryId;
     }
   }, [categoryId, methods]);
 
   // set data of date to one hours later of start time
   useEffect(() => {
-  if (!isInitialized.current || !startTime) return;
+    if (!isInitialized.current || !startTime) return;
 
-  // start did not changed 
-  if (previousStartTime.current === startTime) {
-    return;
-  }
+    // start did not changed
+    if (previousStartTime.current === startTime) {
+      return;
+    }
 
-  const oneHourLater = startTime + 60 * 60;
+    const oneHourLater = startTime + 60 * 60;
 
-  // if start is greater than end
-  if (!endTime || startTime >= endTime) {
-    methods.setValue('discount_end_time', oneHourLater, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-  }
+    // if start is greater than end
+    if (!endTime || startTime >= endTime) {
+      methods.setValue('discount_end_time', oneHourLater, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
 
-  previousStartTime.current = startTime;
-}, [startTime, endTime, methods]);
+    previousStartTime.current = startTime;
+  }, [startTime, endTime, methods]);
 
   // fill form with back data
- useEffect(() => {
-  if (!productData) return;
+  useEffect(() => {
+    if (!productData) return;
 
-  methods.reset({
-    id: productData.id,
-    name: productData.name,
-    en_name: productData.en_name,
-    accCode: productData.accCode,
-    brand: productData.brand,
-    category: productData.category,
-    subCategory_id: productData?.subCategory,
-    color_name: productData.color_name,
-    color_code: productData.color_code,
-    opening_type: productData.opening_type,
-    material: productData.material,
-    height: productData.height,
-    width: productData.width,
-    price: Number(productData.price.replaceAll(',', '')),
-    inventory: productData.inventory,
-    warehouseInventory: productData.warehouseInventory,
-    minSalesCount: productData.minSalesCount,
-    hasDiscount: Number(productData.discount) > 0,
-    discount: productData.discount > 0 ? productData.discount : undefined,
-    discount_start_time: productData.discount_start_time
-      ? productData.discount_start_time
-      : undefined,
-    discount_end_time: productData.discount_end_time
-      ? productData.discount_end_time
-      : undefined,
-    image: productData.image,
-    secondary_image: productData.secondary_image,
-    oldImages: productData.images ?? [],
-    tags: productData.tags,
-    shortDescription: productData.shortDescription,
-    description: productData.description,
-  });
+    methods.reset({
+      id: productData.id,
+      name: productData.name,
+      en_name: productData.en_name,
+      accCode: productData.accCode,
+      brand: productData.brand,
+      category: productData.category,
+      subCategory_id: productData?.subCategory,
+      color_name: productData.color_name,
+      color_code: productData.color_code,
+      opening_type: productData.opening_type,
+      material: productData.material,
+      height: productData.height,
+      width: productData.width,
+      price: Number(productData.price.replaceAll(',', '')),
+      inventory: productData.inventory,
+      warehouseInventory: productData.warehouseInventory,
+      minSalesCount: productData.minSalesCount,
+      hasDiscount: Number(productData.discount) > 0,
+      discount: productData.discount > 0 ? productData.discount : undefined,
+      discount_start_time: productData.discount_start_time
+        ? productData.discount_start_time
+        : undefined,
+      discount_end_time: productData.discount_end_time
+        ? productData.discount_end_time
+        : undefined,
+      image: productData.image,
+      secondary_image: productData.secondary_image,
+      oldImages: productData.images ?? [],
+      tags: productData.tags,
+      shortDescription: productData.shortDescription,
+      description: productData.description,
+    });
 
-  previousStartTime.current = productData.discount_start_time || undefined;
-  isInitialized.current = true;
-  setInitialLoadData(false);
-}, [productData, methods]);
+    previousStartTime.current = productData.discount_start_time || undefined;
+    isInitialized.current = true;
+    setInitialLoadData(false);
+  }, [productData, methods]);
 
   // filter group based on category
   const filteredGroup = groupData?.data?.filter((group) => group.parent === categoryId);
