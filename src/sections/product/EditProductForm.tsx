@@ -20,7 +20,7 @@ import { AiFillPicture } from 'react-icons/ai';
 import RHFSwitch from '@/components/react-hook-form/RHFSwitch';
 import RHFSelect from '@/components/react-hook-form/RHFSelect';
 import RHFDatePicker from '@/components/react-hook-form/RHFDatePicker';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import RHFUpload from '@/components/react-hook-form/RHFUpload';
 import RHFColor from '@/components/react-hook-form/RHFColor';
 import RHFTagsInput from '@/components/react-hook-form/RHFTagsInput';
@@ -45,6 +45,8 @@ import { formDataGenerator } from '@/utils/formDataGenerator';
 
 export default function EditProductForm() {
   const [initialLoadData, setInitialLoadData] = useState(true);
+  const isInitialized = useRef(false);
+  const previousStartTime = useRef<number | undefined>(undefined);
   const { progressPercentage, setProgressPercentage, resetProgress } = useProgress();
 
   const navigate = useNavigate();
@@ -116,76 +118,72 @@ export default function EditProductForm() {
     if (!initialLoadData) {
       methods.setValue('subCategory_id', null);
     }
-    setInitialLoadData(false);
   }, [categoryId, methods]);
 
   // set data of date to one hours later of start time
   useEffect(() => {
-    if (!startTime) return;
+  if (!isInitialized.current || !startTime) return;
 
-    const oneHourLater = startTime + 60 * 60;
+  // start did not changed 
+  if (previousStartTime.current === startTime) {
+    return;
+  }
 
-    if (!endTime || endTime < oneHourLater) {
-      methods.setValue('discount_end_time', oneHourLater, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    }
-  }, [startTime, methods]);
+  const oneHourLater = startTime + 60 * 60;
+
+  // if start is greater than end
+  if (!endTime || startTime >= endTime) {
+    methods.setValue('discount_end_time', oneHourLater, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }
+
+  previousStartTime.current = startTime;
+}, [startTime, endTime, methods]);
 
   // fill form with back data
-  useEffect(() => {
-    if (!productData) return;
+ useEffect(() => {
+  if (!productData) return;
 
-    methods.reset({
-      id: productData.id,
-      name: productData.name,
-      en_name: productData.en_name,
+  methods.reset({
+    id: productData.id,
+    name: productData.name,
+    en_name: productData.en_name,
+    accCode: productData.accCode,
+    brand: productData.brand,
+    category: productData.category,
+    subCategory_id: productData?.subCategory,
+    color_name: productData.color_name,
+    color_code: productData.color_code,
+    opening_type: productData.opening_type,
+    material: productData.material,
+    height: productData.height,
+    width: productData.width,
+    price: Number(productData.price.replaceAll(',', '')),
+    inventory: productData.inventory,
+    warehouseInventory: productData.warehouseInventory,
+    minSalesCount: productData.minSalesCount,
+    hasDiscount: Number(productData.discount) > 0,
+    discount: productData.discount > 0 ? productData.discount : undefined,
+    discount_start_time: productData.discount_start_time
+      ? productData.discount_start_time
+      : undefined,
+    discount_end_time: productData.discount_end_time
+      ? productData.discount_end_time
+      : undefined,
+    image: productData.image,
+    secondary_image: productData.secondary_image,
+    oldImages: productData.images ?? [],
+    tags: productData.tags,
+    shortDescription: productData.shortDescription,
+    description: productData.description,
+  });
 
-      accCode: productData.accCode,
-
-      brand: productData.brand,
-
-      category: productData.category,
-      subCategory_id: productData?.subCategory,
-
-      color_name: productData.color_name,
-      color_code: productData.color_code,
-
-      opening_type: productData.opening_type,
-
-      material: productData.material,
-      height: productData.height,
-      width: productData.width,
-
-      price: Number(productData.price.replaceAll(',', '')),
-
-      inventory: productData.inventory,
-      warehouseInventory: productData.warehouseInventory,
-      minSalesCount: productData.minSalesCount,
-
-      hasDiscount: Number(productData.discount) > 0,
-      discount: productData.discount > 0 ? productData.discount : undefined,
-
-      discount_start_time: productData.discount_start_time
-        ? productData.discount_start_time
-        : undefined,
-
-      discount_end_time: productData.discount_end_time
-        ? productData.discount_end_time
-        : undefined,
-
-      image: productData.image,
-      secondary_image: productData.secondary_image,
-
-      oldImages: productData.images ?? [],
-      tags: productData.tags,
-
-      shortDescription: productData.shortDescription,
-      description: productData.description,
-    });
-    setInitialLoadData(true);
-  }, [productData, methods]);
+  previousStartTime.current = productData.discount_start_time || undefined;
+  isInitialized.current = true;
+  setInitialLoadData(false);
+}, [productData, methods]);
 
   // filter group based on category
   const filteredGroup = groupData?.data?.filter((group) => group.parent === categoryId);
@@ -195,7 +193,7 @@ export default function EditProductForm() {
       ...data,
       oldImages: oldImages.map((image) => image.image),
     });
-
+    console.log(data);
     // formData console
 
     try {
