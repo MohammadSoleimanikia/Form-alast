@@ -57,7 +57,7 @@ export default function AddProductForm() {
     mode: 'onChange',
     resolver: yupResolver(AddProductSchema),
     defaultValues: {
-      discount_start_time: Date.now(),
+      discount_start_time: Math.floor(Date.now() / 1000),
       inventory: 1,
       minSalesCount: 1,
       opening_type: 1,
@@ -75,7 +75,7 @@ export default function AddProductForm() {
   useEffect(() => {
     if (!startTime) return;
 
-    setValue('discount_end_time', startTime + 60 * 60 * 1000, {
+    setValue('discount_end_time', startTime + 60 * 60, {
       shouldValidate: true,
       shouldDirty: true,
     });
@@ -92,7 +92,7 @@ export default function AddProductForm() {
 
       toast.success('محصول با موفقیت ثبت شد');
       reset({
-        discount_start_time: Date.now(),
+        discount_start_time: Math.floor(Date.now() / 1000),
         inventory: 1,
         minSalesCount: 1,
         opening_type: 1,
@@ -207,9 +207,7 @@ export default function AddProductForm() {
                   name="discount_end_time"
                   labelText="تاریخ پایان*"
                   minDateTime={
-                    startTime
-                      ? new Date(new Date(startTime).getTime() + 5 * 60 * 1000)
-                      : new Date()
+                    startTime ? new Date((startTime + 5 * 60) * 1000) : new Date()
                   }
                 />
               </>

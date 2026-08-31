@@ -28,8 +28,12 @@ export default function RHFDatePicker({ name, labelText, ...other }: Props) {
           <LocalizationProvider dateAdapter={AdapterDateFnsJalali}>
             <DateTimePicker
               {...other}
-              value={field.value ? new Date(field.value/1000)  : new Date()}
-              onChange={(value) => field.onChange(value?.getTime() ?? null)}
+              value={field.value ? new Date(field.value * 1000) : null}
+              onChange={(value) =>
+                field.onChange(
+                  value ? Math.floor(value.getTime() / 1000) : null
+                )
+              }
               ampm={false}
               slotProps={{
                 textField: {
@@ -50,7 +54,11 @@ export default function RHFDatePicker({ name, labelText, ...other }: Props) {
             />
           </LocalizationProvider>
 
-          {error && <FormHelperText error>{error.message}</FormHelperText>}
+          {error && (
+            <FormHelperText error>
+              {error.message}
+            </FormHelperText>
+          )}
         </div>
       )}
     />

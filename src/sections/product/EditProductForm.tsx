@@ -121,13 +121,13 @@ export default function EditProductForm() {
   useEffect(() => {
     if (!startTime) return;
 
-    if (startTime + 60 * 60 * 1000 > endTime!) {
-      methods.setValue('discount_end_time', startTime + 60 * 60 * 1000, {
+    if (startTime + 60 * 60 > endTime!) {
+      methods.setValue('discount_end_time', startTime + 60 * 60, {
         shouldValidate: true,
         shouldDirty: true,
       });
     }
-  }, [startTime, methods.setValue]);
+  }, [startTime, endTime, methods]);
 
   // fill form with back data
   useEffect(() => {
@@ -164,11 +164,11 @@ export default function EditProductForm() {
       discount: productData.discount > 0 ? productData.discount : undefined,
 
       discount_start_time: productData.discount_start_time
-        ? productData.discount_start_time * 1000
+        ? productData.discount_start_time
         : undefined,
 
       discount_end_time: productData.discount_end_time
-        ? productData.discount_end_time * 1000
+        ? productData.discount_end_time
         : undefined,
 
       image: productData.image,
@@ -187,7 +187,6 @@ export default function EditProductForm() {
   const filteredGroup = groupData?.data?.filter((group) => group.parent === categoryId);
 
   const submitHandler = async (data: EditProductType) => {
-    
     const formData = formDataGenerator({
       ...data,
       oldImages: oldImages.map((image) => image.image),
@@ -322,9 +321,7 @@ export default function EditProductForm() {
                   labelText="تاریخ پایان*"
 
                   minDateTime={
-                    startTime
-                      ? new Date(new Date(startTime).getTime() + 5 * 60 * 1000)
-                      : new Date()
+                    startTime ? new Date((startTime + 5 * 60) * 1000) : new Date()
                   }
                 />
               </>
