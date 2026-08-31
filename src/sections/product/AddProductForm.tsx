@@ -8,8 +8,6 @@ import { FaDoorClosed, FaRegNewspaper } from 'react-icons/fa';
 import RHFSelectAutoComplete from '@/components/react-hook-form/RHFSelectAutoComplete';
 import useSWR from 'swr';
 import {
-  createSWRGetFetcher,
-  createSWRPostFetcher,
   getFetcher,
   postFetcher,
 } from '@/utils/fetcher';

@@ -29,6 +29,8 @@ import { API_AUTH } from '@/services';
 import { BaseResponse } from '@/_types/_bsResponse';
 import type { LoginResponse, OtpResponse } from '@/_types/_auth';
 import { mutationFetcher } from '@/services/authServices';
+import { API_SECONDARY_URL } from '@/utils/config';
+import { createSWRPostFetcher } from '@/utils/fetcher';
 
 export default function LoginPage() {
   const location = useLocation();
@@ -50,24 +52,29 @@ export default function LoginPage() {
     mode: currentMode,
   };
 
+  const customPostFetcher = createSWRPostFetcher(API_SECONDARY_URL);
   const { trigger: loginTrigger, isMutating: isLoginMutating } = useSWRMutation<
     LoginResponse,
     Error,
     string,
     {
-      mobile: string;
+      data: {
+        mobile: string;
+      };
     }
-  >(API_AUTH.LOGIN, mutationFetcher);
+  >(API_AUTH.LOGIN, customPostFetcher);
 
   const { trigger: otpTrigger, isMutating: isOtpMutating } = useSWRMutation<
     BaseResponse<OtpResponse>,
     Error,
     string,
     {
-      mobile: string;
-      code: string;
+      data: {
+        mobile: string;
+        code: string;
+      };
     }
-  >(API_AUTH.OTP, mutationFetcher);
+  >(API_AUTH.OTP, customPostFetcher);
 
   const methods = useForm<LoginFormValuesProps>({
     resolver: yupResolver(LoginFormSchema) as any,
@@ -120,7 +127,9 @@ export default function LoginPage() {
 
   const handleLoginRequest = async (mobile: string) => {
     const res = await loginTrigger({
-      mobile,
+      data: {
+        mobile,
+      },
     });
 
     if (!res.success || res.statusCode !== 200) {
@@ -128,15 +137,19 @@ export default function LoginPage() {
     }
 
     saveMobile(mobile);
-    toast.success(`کد ورود شما :${res.code}`, { duration: 8000 });
+    toast.success(`کد ورود شما :${res.code}`, {
+      duration: 8000,
+    });
 
     switchToOtpMode();
   };
 
   const handleOtpVerify = async (mobile: string, code: string) => {
     const res = await otpTrigger({
-      mobile,
-      code,
+      data: {
+        mobile,
+        code,
+      },
     });
     if (!res.success || !res.data) {
       throw new Error('کد وارد شده معتبر نیست');
