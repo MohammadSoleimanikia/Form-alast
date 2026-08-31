@@ -1,6 +1,6 @@
 import toast from 'react-hot-toast';
 
-import {  API_PRODUCT } from '@/routes/path';
+import { API_PRODUCT } from '@/services';
 import { apiClient } from './apiClient';
 
 class MyUploadAdapter {
@@ -35,7 +35,7 @@ class MyUploadAdapter {
           throw new Error('آدرس عکس دریافت نشد');
         }
 
-        // 
+        //
         this.onUploadSuccess(url);
 
         return {
@@ -56,13 +56,9 @@ class MyUploadAdapter {
   }
 }
 
-export function CustomUploadAdapterPlugin(
-  onUploadSuccess: (url: string) => void,
-) {
+export function CustomUploadAdapterPlugin(onUploadSuccess: (url: string) => void) {
   return function (editor: any) {
-    editor.plugins.get('FileRepository').createUploadAdapter = (
-      loader: any,
-    ) => {
+    editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {
       return new MyUploadAdapter(loader, onUploadSuccess);
     };
   };

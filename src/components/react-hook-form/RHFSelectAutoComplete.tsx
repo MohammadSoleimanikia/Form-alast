@@ -20,7 +20,7 @@ type Props = Omit<
   name: string;
   isDataLoading: boolean;
   labelText: string;
-  options?: Option[];
+  options?: Option[] |null;
 };
 
 export default function RHFSelectAutoComplete({
@@ -64,7 +64,7 @@ export default function RHFSelectAutoComplete({
                 placeholder={
                   isDataLoading
                     ? 'در حال بارگزاری'
-                    : options.length === 0
+                    : options?.length === 0
                       ? 'اطلاعات زیرگروه موجود نمی‌باشد'
                       : 'انتخاب کنید'
                 }

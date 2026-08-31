@@ -14,23 +14,19 @@ const imageSchema = yup
     // uploaded image
     return allowedImageTypes.includes(value.type);
   });
- 
+
 export const imagesSchema = yup
   .array()
   .of(
     yup
       .mixed<File | string>()
-      .test(
-        'file-type',
-        'فرمت تصویر باید jpg، jpeg، png یا webp باشد',
-        (value) => {
-          if (!value) return true;
+      .test('file-type', 'فرمت تصویر باید jpg، jpeg، png یا webp باشد', (value) => {
+        if (!value) return true;
 
-          if (typeof value === 'string') return true;
+        if (typeof value === 'string') return true;
 
-          return allowedImageTypes.includes(value.type);
-        },
-      ),
+        return allowedImageTypes.includes(value.type);
+      }),
   )
   .default([]);
 
@@ -50,8 +46,22 @@ export const AddProductSchema = yup.object({
 
   brand: yup.string().optional(),
 
-  category: yup.number().required('دسته بندی محصول الزامی است'),
-  subCategory_id: yup.number().required('انتخاب زیر گزوه محصول الزامی است'),
+  category: yup
+    .number()
+    .typeError('دسته بندی محصول الزامی است')
+    .required('دسته بندی محصول الزامی است'),
+
+ subCategory_id: yup
+  .number()
+  .typeError('انتخاب زیر گروه محصول الزامی است').nullable()
+  .test(
+    'required',
+    'گروه محصول الزامی میباشد',
+    (value) => value != null
+  ),
+
+  
+
   accCode: yup.string().required('کد حسابداری الزامی است'),
 
   // number or string.
@@ -107,7 +117,7 @@ export const AddProductSchema = yup.object({
   description: yup.string().required('توضیحات محصول الزامی است'),
   color_code: yup.string().required('انتخاب رنگ الزامی میباشد'),
   color_name: yup.string().required('نام رنگ الزامی میباشد'),
-  tags: yup.array().of(yup.string().trim()).default([]),
+  tags: yup.array().of(yup.string().trim()).default([]).nullable(),
   inventory: yup.number().required('وضعیت موجودی الزامی میباشد '),
   width: yup.number().required('عرض محصول الزامی است'),
   height: yup.number().required('ارتفاع محصول الزامی است'),

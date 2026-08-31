@@ -5,6 +5,7 @@ const imageItemSchema = yup.object({
   id: yup.number().required(),
   image:yup.string().required()
 })
+
 export const EditProductSchema = AddProductSchema.shape({
   oldImages:yup.array().of(imageItemSchema).default([]),
   id:yup.number(),

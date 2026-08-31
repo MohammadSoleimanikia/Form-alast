@@ -25,7 +25,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { BsArrowLeft } from 'react-icons/bs';
 import useSWRMutation from 'swr/mutation';
-import { API_AUTH } from '@/routes/path';
+import { API_AUTH } from '@/services';
 import { BaseResponse } from '@/_types/_bsResponse';
 import type { LoginResponse, OtpResponse } from '@/_types/_auth';
 import { mutationFetcher } from '@/services/authServices';

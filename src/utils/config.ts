@@ -2,6 +2,7 @@ import type { SettingsValueProps } from '@/_types/_settings';
 // ENV
 // ----------------------------------------------------------------------
 export const API_BASE_URL = import.meta.env.VITE_BASE_API_URL || '';
+export const API_BASE_ADMIN_URL = import.meta.env.VITE_HOST_API_KEY_ADMIN || '';
 
 //
 export const PATH_AFTER_LOGIN = '/';

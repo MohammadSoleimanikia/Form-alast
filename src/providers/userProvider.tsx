@@ -1,8 +1,8 @@
 import { BaseResponse } from '@/_types/_bsResponse';
 import { UserTypes } from '@/_types/_user';
 import { tokenKey } from '@/config';
-import { API_AUTH } from '@/routes/path';
-import { getFetcher } from '@/utils/getFetcher';
+import { API_AUTH } from '@/services';
+import { getFetcher } from '@/utils/fetcher';
 import { useEffect } from 'react';
 import useSWR from 'swr';
 import { useAppDispatch } from '@/redux/hooks';
