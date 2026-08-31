@@ -42,7 +42,6 @@ import { STOCK_STATUS_DATA } from '@/utils/constants';
 import { OPENING_TYPE_DATA } from '@/utils/constants';
 import NotFound from '@/pages/NotFound';
 import { formDataGenerator } from '@/utils/formDataGenerator';
-import ErrorPage from '@/pages/Error';
 
 export default function EditProductForm() {
   const [initialLoadData, setInitialLoadData] = useState(true);
@@ -90,7 +89,7 @@ export default function EditProductForm() {
   );
 
   const isProductNotFound = formError?.status === 402;
-  const failedToLoadData=!!formError;
+  const failedToLoadData = !!formError || (!isLoadingFormData && formData == null);
   const productData = formData?.data;
 
   // RHF
@@ -111,7 +110,6 @@ export default function EditProductForm() {
   const startTime = methods.watch('discount_start_time');
   const endTime = methods.watch('discount_end_time');
   const oldImages = methods.watch('oldImages');
-
 
   //   remove default value if category changes
   useEffect(() => {
@@ -259,7 +257,7 @@ export default function EditProductForm() {
             {/* category */}
             <RHFSelectAutoComplete
               isDataLoading={isLoadingCategory}
-              disabled={ !!categoryError || !!groupError }
+              disabled={!!categoryError || !!groupError}
               loading={isLoadingCategory}
               loadingText="در حال بارگیری "
               labelText="انتخاب دسته بندی*"
